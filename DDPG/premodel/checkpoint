@@ -1,0 +1,6 @@
+model_checkpoint_path: "B:\\unrealcontrol\\DDPG\\data/20\\model"
+all_model_checkpoint_paths: "B:\\unrealcontrol\\DDPG\\data/16\\model"
+all_model_checkpoint_paths: "B:\\unrealcontrol\\DDPG\\data/17\\model"
+all_model_checkpoint_paths: "B:\\unrealcontrol\\DDPG\\data/18\\model"
+all_model_checkpoint_paths: "B:\\unrealcontrol\\DDPG\\data/19\\model"
+all_model_checkpoint_paths: "B:\\unrealcontrol\\DDPG\\data/20\\model"
