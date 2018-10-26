@@ -136,13 +136,14 @@ class drone_env_gridworld(drone_env):
 # continuous control
 		
 class drone_env_heightcontrol(drone_env):
-	def __init__(self,start = [-23,0,-8],aim = [-23,125,-8],scaling_factor = 2,img_size = [64,64]):
+	def __init__(self,start = [-23,0,-8],aim = [-23,125,-8],scaling_factor = 1.5,img_size = [64,64]):
 		drone_env.__init__(self,start,aim)
 		self.scaling_factor = scaling_factor
 		self.aim = np.array(aim)
 		self.height_limit = -30
 		self.count = 0
 		self.initDistance=1000
+		self.cacheDistance=1000
 		self.rand = False
 
 		if aim == None:
@@ -150,14 +151,14 @@ class drone_env_heightcontrol(drone_env):
 			self.start = np.array([0,0,-10])
 		else:
 			self.aim_height = self.aim[2]
-	
+
 	def reset_aim(self):
 		self.aim = (np.random.rand(3)*200).astype("int")-100
 		self.aim[2] = -np.random.randint(3) - 2
 
 		print ("Our aim is: {}".format(self.aim).ljust(80," "),end = '\r')
 		self.aim_height = self.aim[2]
-		
+
 	def reset(self):
 		if self.rand:
 			self.reset_aim()
@@ -170,21 +171,22 @@ class drone_env_heightcontrol(drone_env):
 		relativeState[1][0]=self.state[1][0]-self.aim[0]
 		relativeState[1][1] = self.state[1][1] - self.aim[1]
 		self.initDistance=np.sqrt(abs(relativeState[1][0]) ** 2 + abs(relativeState[1][1]) ** 2 )
+		self.cacheDistance=self.initDistance
 		relativeState[1][2] =relativeState[1][1]/relativeState[1][0]
 
 	#	norm_state = copy.deepcopy(relativeState)
 	#	norm_state[1] = norm_state[1] / 100
 
 		return relativeState
-		
+
 	def getState(self):
 		pos = v2t(self.client.getPosition())
 		vel = v2t(self.client.getVelocity())
 		img = self.getImg()
 		state = [img, np.array([pos[0],pos[1],pos[2] - self.aim_height])]
-		
+
 		return state
-		
+
 	def step(self,action):#一步行为
 		pos = v2t(self.client.getPosition())
 		dpos = self.aim - pos
@@ -197,11 +199,12 @@ class drone_env_heightcontrol(drone_env):
 			action[1] = action[1] / abs(action[1])
 
 		self.count+=1
-		temp = np.sqrt(dpos[0]**2 + dpos[1]**2)
-		dx = action[0] * self.scaling_factor
-		dy = action[1]* self.scaling_factor
+		temp = np.sqrt(action[0]**2 + action[1]**2)
 
-		
+		dx = action[0] * self.scaling_factor/temp
+		dy = action[1]* self.scaling_factor/temp
+
+
 		state_ = self.getState()
 		pos = state_[1][2]
 		dz =self.aim[2]-pos
@@ -225,7 +228,7 @@ class drone_env_heightcontrol(drone_env):
 				done = True
 				reward = 50
 				info = "success"
-			
+
 		if self.client.getCollisionInfo().has_collided:
 			reward = -50
 			done = True
@@ -238,7 +241,7 @@ class drone_env_heightcontrol(drone_env):
 			done = True
 			info = "too slow"
 			reward = -50
-			
+
 		self.state = state_
 
 		relativeState = copy.deepcopy(state_)
@@ -254,22 +257,27 @@ class drone_env_heightcontrol(drone_env):
 		#print(norm_state[1])
 
 		return norm_state,reward,done,info
-		
+
 	def isDone(self):
 		pos = v2t(self.client.getPosition())
 		pos[2] = self.aim[2]
 		if distance(self.aim,pos) < self.threshold:
 			return True
 		return False
-		
+
 	def rewardf(self,state,state_):
 		pos = state[1][2]
 		pos_ = state_[1][2]
 		reward = - abs(pos_) + 5
 		dis = distance(state[1][0:2], self.aim[0:2])
 		dis_ = distance(state_[1][0:2], self.aim[0:2])
-		reward2 = (self.initDistance-dis_)/self.initDistance
-		reward2 = reward2 *50
+		if dis<dis_:
+		   reward2 =dis-dis_
+		   reward2 = reward2 * 3
+		else:
+		   reward2=dis-dis_
+		   reward2 = reward2 * 10
+
 		print("distance: {}".format(dis_).ljust(20," "),"position: {}".format(state_[1]).ljust(20," "),end = "\r")
 
 		return reward2
