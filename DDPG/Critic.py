@@ -64,7 +64,7 @@ class Critic:
         
     def train(self, states, actions, td_target):
         imgs, dstates = self._seperate_image(states)
-        actions = actions.reshape([self.minibatch_size,2])
+        actions = actions.reshape([self.minibatch_size,1])
         feed_dict = {self.state:dstates, self.action:actions, self.td_target:td_target, self.img:imgs}
         self.sess.run(self.train_step, feed_dict=feed_dict)
         

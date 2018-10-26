@@ -85,7 +85,7 @@ class DDPG_agent:
     def load(self, saver, dir):
         path = os.path.join(dir, 'checkpoint')
         ckpt = tf.train.get_checkpoint_state(os.path.dirname(path))
-        self.replay_memory.load(dir)
+       # self.replay_memory.load(dir)
 
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(self.sess, ckpt.model_checkpoint_path)#这是取么

@@ -194,15 +194,17 @@ class drone_env_heightcontrol(drone_env):
 		if abs(action[0]) > 1:
 			print ("action value error")
 			action[0] = action[0] / abs(action[0])
-		if abs(action[1]) > 1:
-			print ("action value error")
-			action[1] = action[1] / abs(action[1])
+
 
 		self.count+=1
-		temp = np.sqrt(action[0]**2 + action[1]**2)
+		temp = np.sqrt(dpos[0]**2 + dpos[1]**2)
+		upOrDown=1
+		if dpos[1]<0:
+			upOrDown=-1
+		arpha=np.arccos(dpos[0]/temp)*upOrDown+action[0]*np.pi
 
-		dx = action[0] * self.scaling_factor/temp
-		dy = action[1]* self.scaling_factor/temp
+		dx = np.cos(arpha) * self.scaling_factor
+		dy = np.sin(arpha)* self.scaling_factor
 
 
 		state_ = self.getState()
@@ -273,10 +275,10 @@ class drone_env_heightcontrol(drone_env):
 		dis_ = distance(state_[1][0:2], self.aim[0:2])
 		if dis<dis_:
 		   reward2 =dis-dis_
-		   reward2 = reward2 * 3
+		   reward2 = reward2 * 1
 		else:
 		   reward2=dis-dis_
-		   reward2 = reward2 * 10
+		   reward2 = reward2 * 3
 
 		print("distance: {}".format(dis_).ljust(20," "),"position: {}".format(state_[1]).ljust(20," "),end = "\r")
 

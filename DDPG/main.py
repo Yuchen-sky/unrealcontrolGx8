@@ -24,7 +24,7 @@ def main():
 			state = env.reset()#外调函数
 			state_shape = 3
 			action_bound = 1
-			action_dim = 2
+			action_dim = 1
 			agent = DDPG_agent(sess, state_shape, action_bound, action_dim)#DDPG使用
 			saver = tf.train.Saver()
 			print(DIR)
