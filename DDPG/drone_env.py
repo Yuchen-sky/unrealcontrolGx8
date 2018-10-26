@@ -168,11 +168,15 @@ class drone_env_heightcontrol(drone_env):
 
 
 		relativeState=copy.deepcopy(self.state)
-		relativeState[1][0]=self.state[1][0]-self.aim[0]
-		relativeState[1][1] = self.state[1][1] - self.aim[1]
+		relativeState[1][0]=self.aim[0]-self.state[1][0]
+		relativeState[1][1] =self.aim[1]-self.state[1][1]
 		self.initDistance=np.sqrt(abs(relativeState[1][0]) ** 2 + abs(relativeState[1][1]) ** 2 )
 		self.cacheDistance=self.initDistance
-		relativeState[1][2] =relativeState[1][1]/relativeState[1][0]
+		upOrDown=1
+		if relativeState[1][1]<0:
+			upOrDown=-1
+		theta=np.arccos(relativeState[1][0]/self.initDistance)*upOrDown
+		relativeState[1][2] =theta
 
 	#	norm_state = copy.deepcopy(relativeState)
 	#	norm_state[1] = norm_state[1] / 100
@@ -202,16 +206,18 @@ class drone_env_heightcontrol(drone_env):
 		if dpos[1]<0:
 			upOrDown=-1
 		arpha=np.arccos(dpos[0]/temp)*upOrDown+action[0]*np.pi
+		print("angle change: {}".format(action[0]*np.pi).ljust(20," "))
 
 		dx = np.cos(arpha) * self.scaling_factor
 		dy = np.sin(arpha)* self.scaling_factor
 
 
-		state_ = self.getState()
-		pos = state_[1][2]
+
+		pos = self.state[1][2]
 		dz =self.aim[2]-pos
-		print ("direction: ",dx,dy,dz,end = "\r")
+		#print ("direction: ",dx,dy,dz,end = "\r")
 		drone_env.moveByDist(self,[dx,dy,dz],forward = True)
+		state_ = self.getState()
 		info = None
 		done = False
 		reward = self.rewardf(self.state,state_)
@@ -248,9 +254,10 @@ class drone_env_heightcontrol(drone_env):
 
 		relativeState = copy.deepcopy(state_)
 
-		relativeState[1][0] = self.state[1][0] - self.aim[0]
-		relativeState[1][1] = self.state[1][1] - self.aim[1]
-		relativeState[1][2]=relativeState[1][1]/relativeState[1][0]
+
+		relativeState[1][0] = self.aim[0] - self.state[1][0]
+		relativeState[1][1] = self.aim[1] - self.state[1][1]
+		relativeState[1][2]=arpha
 		reward /= 50
 
 		norm_state = relativeState
