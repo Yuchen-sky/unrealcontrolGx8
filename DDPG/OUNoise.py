@@ -4,7 +4,7 @@ import os
 
 class OrnsteinUhlenbeckActionNoise:
 	# from https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py
-    def __init__(self, mu, sigma=0.4, theta=.2, dt=1e-2, x0=None):
+    def __init__(self, mu, sigma=0.3, theta=.15, dt=1e-2, x0=None):
         self.theta = theta
         self.mu = mu
         self.sigma = sigma
@@ -14,8 +14,8 @@ class OrnsteinUhlenbeckActionNoise:
 
     def __call__(self):
 
-        x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt + \
-            self.sigma * np.sqrt(self.dt) * np.random.normal(scale=1.0,size=self.mu.shape)
+        x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt*0.8 + \
+            self.sigma * np.sqrt(self.dt) * np.random.normal(scale=2.0,size=self.mu.shape)*1.2
         self.x_prev = x
         return x
 

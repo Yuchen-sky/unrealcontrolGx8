@@ -22,14 +22,23 @@ class Actor:
         
         self.eval_param = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="actor/eval_net")
         self.target_param = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="actor/target_net")
-        
+        self.update_opsc2 = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        self.update_opsc = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         # use negative Q gradient to guide gradient ascent
         self.policy_gradient = tf.gradients(ys=self.eval_net, xs=self.eval_param, grad_ys=-self.Q_gradient)
         self.train_step = tf.train.AdamOptimizer(lr).apply_gradients(zip(self.policy_gradient, self.eval_param))
-        
+
         self.update_ops = self._update_target_net_op()
+
+
         
     def _build_network(self, X, image, scope):
+        def batch_norm(x):
+            epsilon = 1e-3
+            batch_mean, batch_var = tf.nn.moments(x, [0])
+            return tf.nn.batch_normalization(x, batch_mean, batch_var,
+                                             offset=None, scale=None,
+                                             variance_epsilon=epsilon)
         with tf.variable_scope(scope):
             init_w1 = tf.truncated_normal_initializer(0., 3e-4)
             init_w2 = tf.random_uniform_initializer(-0.05, 0.05)
@@ -43,10 +52,15 @@ class Actor:
             flatten = tf.layers.flatten(pool3) # shape(None, 4*4*32)
             concat = tf.concat([flatten, X], 1)
 
-            fc1 = tf.layers.dense(inputs=concat, units=200, activation=tf.nn.relu, kernel_initializer=init_w2)
-            fc2 = tf.layers.dense(inputs=fc1, units=200, activation=tf.nn.relu, kernel_initializer=init_w2)
+            fc1 = tf.layers.dense(inputs=concat, units=200, activation=tf.nn.leaky_relu, kernel_initializer=init_w2)
+            fc1 =tf.layers.dropout(inputs=fc1,rate=0.15)
+            fc2 = tf.layers.dense(inputs=fc1, units=200, activation=tf.nn.leaky_relu, kernel_initializer=init_w2)
+            fc2 = tf.layers.dropout(inputs=fc2, rate=0.15)
+            #fc2 = batch_norm(fc1)
             fc3 = tf.layers.dense(inputs=fc2, units=200, activation=tf.nn.relu, kernel_initializer=init_w2)
-            action_normal = tf.layers.dense(inputs=fc3, units=self.action_dim, activation=tf.nn.tanh, kernel_initializer=init_w2)
+            fc3 = tf.layers.dropout(inputs=fc3, rate=0.2)
+            fc4=tf.layers.batch_normalization(fc3)
+            action_normal = tf.layers.dense(inputs=fc4, units=self.action_dim, activation=tf.nn.tanh, kernel_initializer=init_w2)
             action = tf.multiply(action_normal, self.action_bound)
         return action
         
@@ -83,3 +97,5 @@ class Actor:
         images = np.array([state[0] for state in states])
         dstates = np.array([state[1] for state in states])
         return images, dstates
+
+
