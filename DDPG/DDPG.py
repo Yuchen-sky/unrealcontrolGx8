@@ -35,6 +35,7 @@ class DDPG_agent:
         if noise:
             noise = self.action_noise()
             action = np.clip(action + noise, -self.action_bound, self.action_bound)
+            print("noise: {}".format(noise).ljust(20, " "),"finalAction: {}".format(action).ljust(20, " "))
         else:
             action = np.clip(action, -self.action_bound, self.action_bound)
         self.num_action_taken += 1

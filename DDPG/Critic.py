@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 class Critic:
-    def __init__(self, sess, state_shape, action_dim, minibatch_size, lr=1e-4, tau=0.001):
+    def __init__(self, sess, state_shape, action_dim, minibatch_size, lr=1e-3, tau=0.001):
         self.sess = sess
         self.tau = tau
         self.minibatch_size = minibatch_size

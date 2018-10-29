@@ -22,7 +22,7 @@ def main():
                                                                                                  # 这样我们就不会在训练的时候尝试更新它的值。
 			env = drone_env_heightcontrol(aim = None)#外调函数
 			state = env.reset()#外调函数
-			state_shape = 3
+			state_shape = 1
 			action_bound = 1
 			action_dim = 1
 			agent = DDPG_agent(sess, state_shape, action_bound, action_dim)#DDPG使用

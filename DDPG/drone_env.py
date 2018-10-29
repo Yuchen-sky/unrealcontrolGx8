@@ -136,7 +136,7 @@ class drone_env_gridworld(drone_env):
 # continuous control
 		
 class drone_env_heightcontrol(drone_env):
-	def __init__(self,start = [-23,0,-8],aim = [-23,125,-8],scaling_factor = 1,img_size = [64,64]):
+	def __init__(self,start = [-23,0,-8],aim = [-23,125,-8],scaling_factor = 2,img_size = [64,64]):
 		drone_env.__init__(self,start,aim)
 		self.scaling_factor = scaling_factor
 		self.aim = np.array(aim)
@@ -146,6 +146,8 @@ class drone_env_heightcontrol(drone_env):
 		self.cacheAngle=0
 		self.loseCome=0
 		self.rand = False
+		self.totalsuccess = 0
+
 
 		if aim == None:
 			self.rand = True
@@ -155,7 +157,8 @@ class drone_env_heightcontrol(drone_env):
 
 	def reset_aim(self):
 		self.aim = (np.random.rand(3)*200).astype("int")-100
-		self.aim[2] = -np.random.randint(3) - 2
+		self.aim[2] = -np.random.randint(2) - 2
+
 
 		print ("Our aim is: {}".format(self.aim).ljust(80," "),end = '\r')
 		self.aim_height = self.aim[2]
@@ -180,7 +183,7 @@ class drone_env_heightcontrol(drone_env):
 			upOrDown=-1
 		theta=np.arccos(relativeState[1][0]/self.initDistance)*upOrDown
 		relativeState[1][2] =self.cacheAngle
-
+        newstate=
 	#	norm_state = copy.deepcopy(relativeState)
 	#	norm_state[1] = norm_state[1] / 100
 
@@ -210,7 +213,7 @@ class drone_env_heightcontrol(drone_env):
 			upOrDown=-1
 		self.cacheAngle=0.6*self.cacheAngle+0.4*action[0]
 		arpha=np.arccos(dpos[0]/temp)*upOrDown+self.cacheAngle*np.pi
-		print("angle change: {}".format(self.cacheAngle*np.pi).ljust(20," "),"action: {}".format(action*np.pi).ljust(20," "))
+		print("angle change: {}".format(self.cacheAngle*np.pi).ljust(20," "),"action: {}".format(action*np.pi).ljust(20," "),"totalsuccess: {}".format(self.totalsuccess).ljust(20," "))
 
 		dx = np.cos(arpha) * self.scaling_factor
 		dy = np.sin(arpha)* self.scaling_factor
@@ -233,17 +236,19 @@ class drone_env_heightcontrol(drone_env):
 		cache=reward
 		if self.isDone():
 			if self.rand:
-				done = True
+
 				reward = 50
 				info = "success"
 				self.reset_aim()
+				self.totalsuccess+=1
 			else:
 				done = True
 				reward = 50
 				info = "success"
+				self.totalsuccess += 1
 		if abs(self.cacheAngle*np.pi)>3.14:
 			self.loseCome+=1
-			if self.loseCome>10:
+			if self.loseCome>6:
 				done=True
 				reward=-50
 				info="gridient disappear"
@@ -266,9 +271,8 @@ class drone_env_heightcontrol(drone_env):
 		relativeState = copy.deepcopy(state_)
 
 
-		relativeState[1][0] = self.aim[0] - self.state[1][0]
-		relativeState[1][1] = self.aim[1] - self.state[1][1]
-		relativeState[1][2]=self.cacheAngle
+
+		relativeState[1][0]=self.cacheAngle
 		reward /= 50
 
 		norm_state = relativeState
@@ -293,12 +297,18 @@ class drone_env_heightcontrol(drone_env):
 		dis_ = distance(state_[1][0:2], self.aim[0:2])
 		if dis<dis_:
 		   reward2 =dis-dis_
-		   reward2 = reward2*1
+		   reward2 = reward2*0.8
+
 		   if abs(self.cacheAngle*np.pi)>3:
-			   reward2*=20
+			   reward2*=14
+		   elif abs(self.cacheAngle * np.pi) > 2.4:
+			   reward2 *= 6
+		   elif abs(self.cacheAngle * np.pi) > 2.1:
+			   reward2 *= 2
+
 		else:
 		   reward2=dis-dis_
-		   reward2 = reward2 * 3
+		   reward2 = reward2 * 2.5
 		reward2+=1-abs(self.cacheAngle*np.pi)
 		if reward2<-50:
 			reward2=-50

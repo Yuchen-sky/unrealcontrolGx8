@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 class Actor:
-    def __init__(self, sess, action_bound, action_dim, state_shape, lr=1e-4, tau=0.001):
+    def __init__(self, sess, action_bound, action_dim, state_shape, lr=1e-3, tau=0.001):
         self.sess = sess
         self.action_bound = action_bound
         self.action_dim = action_dim

@@ -14,9 +14,12 @@ class OrnsteinUhlenbeckActionNoise:
 
     def __call__(self):
 
-        x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt*0.8 + \
-            self.sigma * np.sqrt(self.dt) * np.random.normal(scale=2.0,size=self.mu.shape)*1.2
+        x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt + \
+            self.sigma * np.sqrt(self.dt) * np.random.normal(scale=1,size=self.mu.shape)
         self.x_prev = x
+
+        if abs(x)>0.3:
+            self.x_prev =0
         return x
 
     def reset(self):
