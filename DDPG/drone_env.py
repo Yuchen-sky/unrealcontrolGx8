@@ -174,6 +174,7 @@ class drone_env_heightcontrol(drone_env):
 
 
 		relativeState=copy.deepcopy(self.state)
+		cdd = copy.deepcopy(self.state)
 		relativeState[1][0]=self.aim[0]-self.state[1][0]
 		relativeState[1][1] =self.aim[1]-self.state[1][1]
 		self.initDistance=np.sqrt(abs(relativeState[1][0]) ** 2 + abs(relativeState[1][1]) ** 2 )
@@ -183,11 +184,13 @@ class drone_env_heightcontrol(drone_env):
 			upOrDown=-1
 		theta=np.arccos(relativeState[1][0]/self.initDistance)*upOrDown
 		relativeState[1][2] =self.cacheAngle
+		cdd[1]=[0]
+		cdd[1][0] = relativeState[1][2]
 
 	#	norm_state = copy.deepcopy(relativeState)
 	#	norm_state[1] = norm_state[1] / 100
 
-		return relativeState
+		return cdd
 
 	def getState(self):
 		pos = v2t(self.client.getPosition())
@@ -236,7 +239,7 @@ class drone_env_heightcontrol(drone_env):
 		cache=reward
 		if self.isDone():
 			if self.rand:
-				done = True
+
 				reward = 50
 				info = "success"
 				self.reset_aim()
@@ -270,13 +273,17 @@ class drone_env_heightcontrol(drone_env):
 
 		relativeState = copy.deepcopy(state_)
 
+		norm_state = copy.deepcopy(state_)
+
 
 		relativeState[1][0] = self.aim[0] - self.state[1][0]
 		relativeState[1][1] = self.aim[1] - self.state[1][1]
 		relativeState[1][2]=self.cacheAngle
 		reward /= 50
+		norm_state[1]=[0]
 
-		norm_state = relativeState
+
+		norm_state[1][0] = relativeState[1][2]
 		#norm_state[1] = norm_state[1]/100
 
 		#print(norm_state[1])
@@ -298,7 +305,7 @@ class drone_env_heightcontrol(drone_env):
 		dis_ = distance(state_[1][0:2], self.aim[0:2])
 		if dis<dis_:
 		   reward2 =dis-dis_
-		   reward2 = reward2*0.8
+		   reward2 = reward2
 
 		   if abs(self.cacheAngle*np.pi)>3:
 			   reward2*=14
@@ -309,7 +316,7 @@ class drone_env_heightcontrol(drone_env):
 
 		else:
 		   reward2=dis-dis_
-		   reward2 = reward2 * 2.5
+		   reward2 = reward2 * 2
 		reward2+=1-abs(self.cacheAngle*np.pi)
 		if reward2<-50:
 			reward2=-50

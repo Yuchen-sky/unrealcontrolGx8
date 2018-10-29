@@ -18,7 +18,7 @@ class OrnsteinUhlenbeckActionNoise:
             self.sigma * np.sqrt(self.dt) * np.random.normal(scale=1,size=self.mu.shape)
         self.x_prev = x
 
-        if abs(x)>0.3:
+        if abs(x)>1:
             self.x_prev =0
         return x
 

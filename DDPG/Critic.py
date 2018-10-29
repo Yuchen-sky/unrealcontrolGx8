@@ -48,9 +48,9 @@ class Critic:
             concat = tf.concat([flatten, action, X], 1)
 
             fc1 = tf.layers.dense(inputs=concat, units=200, activation=tf.nn.leaky_relu, kernel_initializer=init_w2)
-            fc1 = tf.layers.dropout(inputs=fc1, rate=0.15)
+            fc1 = tf.layers.dropout(inputs=fc1, rate=0.3)
             fc2 = tf.layers.dense(inputs=fc1, units=200, activation=tf.nn.relu, kernel_initializer=init_w2)
-            fc2 = tf.layers.dropout(inputs=fc2, rate=0.15)
+            fc2 = tf.layers.dropout(inputs=fc2, rate=0.3)
             fc2 = tf.layers.batch_normalization(fc2)
             fc3 = tf.layers.dense(inputs=fc2, units=200, activation=tf.nn.sigmoid, kernel_initializer=init_w2)
             Q = tf.layers.dense(inputs=fc3, units=1, kernel_initializer=init_w2)
